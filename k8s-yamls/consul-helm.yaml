@@ -1,0 +1,37 @@
+global:
+  # image: "hashicorp/consul:1.15.2"
+  # imageK8S: "hashicorp/consul-k8s-control-plane:1.1.1"
+  image: 'im2nguyenhashi/consul:demo'
+  imageK8S: 'im2nguyenhashi/consul-k8s-control-plane-dev:demo'
+  datacenter: dc1
+  peering:
+    enabled: true
+  tls:
+    enabled: true # mandatory for cluster peering
+    enableAutoEncrypt: true
+    verify: true
+  acls:
+    manageSystemACLs: true
+  metrics:
+    enabled: true
+    defaultEnabled: true
+dns:
+  enabled: true
+  enableRedirection: true
+server:
+  enabled: true
+  replicas: 1
+  extraConfig: |
+    {
+      "log_level": "TRACE"
+    }
+connectInject:
+  enabled: true
+meshGateway:
+  enabled: true # mandatory for k8s cluster peering
+  replicas: 1
+ui:
+  enabled: true
+  service:
+    enabled: true
+    type: LoadBalancer
