@@ -43,8 +43,8 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9102"
-        # consul.hashicorp.com/connect-inject: "true"
-        consul.hashicorp.com/connect-inject: "false"
+        consul.hashicorp.com/connect-inject: "true"
+        # consul.hashicorp.com/connect-inject: "false"
     spec:
       serviceAccountName: frontend
       containers:
