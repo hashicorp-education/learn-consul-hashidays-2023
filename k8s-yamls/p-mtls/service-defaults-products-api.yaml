@@ -4,4 +4,4 @@ metadata:
   name: products-api
 spec:
   protocol: http
-  mutualTLSMode: "permissive"
+  mutualTLSMode: "strict"
