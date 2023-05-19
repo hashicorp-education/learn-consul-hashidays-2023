@@ -10,22 +10,22 @@ terraform apply
 ```
 aws eks update-kubeconfig \
   --region $(terraform output -raw region) \
-  --name $(terraform output -raw cluster_name)
+  --name $(terraform output -raw cluster_name)  --alias=dc1
 ```
 
 ### Deploy Consul
 
 ```
-secret=$(cat consul.hclic)
-kubectl create namespace consul
-kubectl create secret generic consul-ent-license --from-literal="key=${secret}" -n consul
-~/consul-k8s install -config-file k8s-yamls/values.yaml
+secret=$(cat k8s-yamls/consul.hclic)
+kubectl create namespace consul --context=dc1
+kubectl create secret generic consul-ent-license --from-literal="key=${secret}" -n consul --context=dc1
+~/consul-k8s install -config-file k8s-yamls/values.yaml --context=dc1
 ```
 
 Confirm Consul is up.
 
 ```
-$ kubectl get pods --namespace consul
+$ kubectl get pods -n consul --context=dc1
 NAME                                           READY   STATUS    RESTARTS   AGE
 consul-connect-injector-59b5b4fccd-mqmhv       1/1     Running   0          90s
 consul-mesh-gateway-7b86b77d99-rhfgd           1/1     Running   0          90s
@@ -36,7 +36,7 @@ consul-webhook-cert-manager-57c5bb695c-qxc5t   1/1     Running   0          90s
 Confirm that helm chart version is `1.2.0-dev`.
 
 ```
-$ helm list --namespace consul
+$ helm list -n consul --context=dc1
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS     CHART            APP VERSION
 consul  consul          1               2023-05-14 06:12:25.898867 -0700 PDT    deployed   consul-1.2.0-dev 1.15.1     
 ```
@@ -44,7 +44,7 @@ consul  consul          1               2023-05-14 06:12:25.898867 -0700 PDT    
 ### Deploy HashiCups services
 
 ```
-$ for service in {products-api,postgres,intentions-api-db}; do kubectl apply -f hashicups-v1.0.2/$service.yaml; done
+$ for service in {products-api,postgres,intentions-api-db}; do kubectl apply -f hashicups-v1.0.2/$service.yaml --context=dc1; done
 service/products-api created
 serviceaccount/products-api created
 servicedefaults.consul.hashicorp.com/products-api created
@@ -61,7 +61,7 @@ serviceintentions.consul.hashicorp.com/deny-all created
 Verify services in k8s.
 
 ```
-$ kubectl get service
+$ kubectl get service --context=dc1
 NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
 kubernetes     ClusterIP   172.20.0.1      <none>        443/TCP    12m
 postgres       ClusterIP   172.20.196.70   <none>        5432/TCP   4s
@@ -84,7 +84,7 @@ products-api-sidecar-proxy
 ## Enable permissive mTLS (mesh)
 
 ```
-$ kubectl apply -f k8s-yamls/mesh-config-entry.yaml --namespace consul
+$ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
 mesh.consul.hashicorp.com/mesh created
 ```
 
@@ -95,7 +95,7 @@ First, you need to deploy services to your Kubernetes clusters. Permissive mTLS 
 (might need to do a deeper dive on tproxy and how routing works)
 
 ```
-$ for service in {frontend,nginx,public-api,payments}; do kubectl apply -f hashicups-v1.0.2/$service.yaml; done
+$ for service in {frontend,nginx,public-api,payments}; do kubectl apply -f hashicups-v1.0.2/$service.yaml --context=dc1; done
 service/frontend created
 serviceaccount/frontend created
 servicedefaults.consul.hashicorp.com/frontend created
@@ -118,7 +118,7 @@ deployment.apps/payments created
 Verify services in k8s.
 
 ```
-$ kubectl get service
+$ kubectl get service --context=dc1
 NAME           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
 frontend       ClusterIP   172.20.55.80     <none>        3000/TCP   20s
 kubernetes     ClusterIP   172.20.0.1       <none>        443/TCP    14m
@@ -145,7 +145,7 @@ products-api-sidecar-proxy
 Open HashiCups in your browser. In a new terminal, port-forward the `nginx` service to port `8080`. 
 
 ```
-$ kubectl port-forward deploy/nginx 8080:80
+$ kubectl port-forward deploy/nginx 8080:80 --context=dc1
 ```
 
 Open [localhost:8080]() in your browser to view the HashiCups UI. Notice that it displays no products, since the `public-api` cannot connect to the `products-api`.
@@ -155,7 +155,7 @@ Open [localhost:8080]() in your browser to view the HashiCups UI. Notice that it
 Enable `products-api` to allow non-mTLS traffic.
 
 ```
-$ kubectl apply -f k8s-yamls/service-defaults-products-api.yaml --namespace consul
+$ kubectl apply -f k8s-yamls/service-defaults-products-api.yaml -n consul --context=dc1
 ```
 
 ## Migrate services to Consul
@@ -188,7 +188,7 @@ spec:
 Once you have done this to all four files, apply the changes. In addition, you will apply a file that creates intentions between these services. 
 
 ```
-$ for service in {frontend,nginx,public-api,payments,intentions-new-services}; do kubectl apply -f hashicups-v1.0.2/$service.yaml; done
+$ for service in {frontend,nginx,public-api,payments,intentions-new-services}; do kubectl apply -f hashicups-v1.0.2/$service.yaml --context=dc1; done
 service/frontend unchanged
 serviceaccount/frontend unchanged
 servicedefaults.consul.hashicorp.com/frontend unchanged
@@ -235,7 +235,7 @@ public-api-sidecar-proxy
 ### Set up intentions
 
 ```
-$ kubectl apply -f hashicups-v1.0.2/intentions-public-products-api.yaml --namespace consul
+$ kubectl apply -f hashicups-v1.0.2/intentions-public-products-api.yaml -n consul --context=dc1
 serviceintentions.consul.hashicorp.com/public-api created
 ```
 
@@ -258,7 +258,7 @@ spec:
 Then, apply the changes.
 
 ```
-$ kubectl apply -f k8s-yamls/service-defaults-products-api.yaml --namespace consul
+$ kubectl apply -f k8s-yamls/service-defaults-products-api.yaml -n consul --context=dc1
 servicedefaults.consul.hashicorp.com/products-api configured
 ```
 
@@ -278,34 +278,13 @@ spec:
 Then, apply the changes.
 
 ```
-$ kubectl apply -f k8s-yamls/mesh-config-entry.yaml --namespace consul
+$ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
 mesh.consul.hashicorp.com/mesh configured
 ```
 
-## Clean up environments
-
-```
-$ ./consul-k8s uninstall
-```
-
-```
-$ terraform destroy
-```
+Now, connect the self-managed cluster to HCP.
 
 # Cluster peering runbook
-
-```
-aws eks update-kubeconfig \
-  --region $(terraform output -raw region) \
-  --name $(terraform output -raw cluster_name) \
-  --alias=dc1
-  
-aws eks \
-  update-kubeconfig \
-  --region $(terraform output -raw region) \
-  --name $(terraform output -raw cluster_name) \
-  --alias=dc2
-```
 
 For `dc1`, we need to modify the mesh gateway then apply it.
 
@@ -316,48 +295,24 @@ metadata:
   name: mesh
 spec:
   allowEnablingPermissiveMutualTLS: false
-  peering:
-    peerThroughMeshGateways: true
+#  peering:
+#    peerThroughMeshGateways: true
 ```
 
 ```
 $ kubectl apply -f k8s-yamls/p-mtls/mesh-config-entry.yaml -n consul --context=dc1
 ```
 
-For `dc2`, we can just apply it.
+For `dc2` and `dc3`, we can just apply it.
 
 ```
-$ kubectl apply -f k8s-yamls/peer-through-meshgateways.yaml -n consul --context=dc2
+$ for dc in {dc2,dc3}; do kubectl --context=$dc apply -f k8s-yamls/peer-through-meshgateways.yaml; done
 ```
 
-Configure `local` mode for traffic routed over teh mesh gateways for both `dc1` and `dc2`.
+Configure `local` mode for traffic routed over the mesh gateways for both `dc1`, `dc2`, `dc3`.
 
 ```
-$ for dc in {dc1,dc2}; do kubectl --context=$dc apply -f k8s-yamls/originate-via-meshgateways.yaml; done
+$ for dc in {dc1,dc2,dc3}; do kubectl --context=$dc apply -f k8s-yamls/originate-via-meshgateways.yaml; done
 ```
 
-Configure `PeeringAcceptor` role for `dc1`.
-
-```
-$ kubectl --context=dc1 apply -f k8s-yamls/acceptor-on-dc1-for-dc2.yaml
-```
-
-Confirm you have created the peering acceptor.
-
-Confirm you successfully created the peering acceptor custom resource definition (CRD).
-
-```
-$ kubectl --context=dc1 get peeringacceptors
-```
-
-Confirm that the PeeringAcceptor CRD generated a peering token secret.
-
-```
-$ kubectl --context=dc1 get secrets peering-token-dc2
-```
-
-Import the peering token generated in dc1 into dc2.
-
-```
-$ kubectl --context=dc1 get secret peering-token-dc2 -o yaml | kubectl --context=dc2 apply -f -
-```
+Do everything else through the HCP UI.
