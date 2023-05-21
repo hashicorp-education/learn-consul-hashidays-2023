@@ -36,3 +36,11 @@ This directory contains the Terraform configuration for the third datacenter (`d
     ```
     kubectl get pods --all-namespaces --context=dc2
     ```
+
+1. Deploy API Gateway.
+
+    ```
+    kubectl apply --filename api-gw/consul-api-gateway.yaml --context=dc2 && \
+        kubectl wait --for=condition=ready gateway/api-gateway --timeout=90s --context=dc2 && \
+        kubectl apply --filename api-gw/routes.yaml --context=dc2
+    ```

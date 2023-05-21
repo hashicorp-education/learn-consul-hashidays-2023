@@ -36,7 +36,7 @@ consul-webhook-cert-manager-57c5bb695c-qxc5t   1/1     Running   0          90s
 Confirm that helm chart version is `1.2.0-dev`.
 
 ```
-$ helm list -n consul --context=dc1
+$ helm list -n consul --kube-context=dc1
 NAME    NAMESPACE       REVISION        UPDATED                                 STATUS     CHART            APP VERSION
 consul  consul          1               2023-05-14 06:12:25.898867 -0700 PDT    deployed   consul-1.2.0-dev 1.15.1     
 ```
@@ -84,13 +84,13 @@ products-api-sidecar-proxy
 ## Enable permissive mTLS (mesh)
 
 ```
-$ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
+$ kubectl apply -f k8s-yamls/p-mtls/mesh-config-entry.yaml -n consul --context=dc1
 mesh.consul.hashicorp.com/mesh created
 ```
 
 ## Connect services to Consul services
 
-First, you need to deploy services to your Kubernetes clusters. Permissive mTLS requires TProxy (so it only works with Consul on Kuberentes for now). The following HashiCups service deployments have `consul.hashicorp.com/connect-inject` explicitly set to `false` so Consul does not register them.
+First, you need to deploy services to your Kubernetes clusters. Permissive mTLS requires TProxy (so it only works with Consul on Kubernetes for now). The following HashiCups service deployments have `consul.hashicorp.com/connect-inject` explicitly set to `false` so Consul does not register them.
 
 (might need to do a deeper dive on tproxy and how routing works)
 
@@ -155,7 +155,7 @@ Open [localhost:8080]() in your browser to view the HashiCups UI. Notice that it
 Enable `products-api` to allow non-mTLS traffic.
 
 ```
-$ kubectl apply -f k8s-yamls/service-defaults-products-api.yaml -n consul --context=dc1
+$ kubectl apply -f k8s-yamls/p-mtls/service-defaults-products-api.yaml -n consul --context=dc1
 ```
 
 ## Migrate services to Consul
@@ -258,7 +258,7 @@ spec:
 Then, apply the changes.
 
 ```
-$ kubectl apply -f k8s-yamls/service-defaults-products-api.yaml -n consul --context=dc1
+$ kubectl apply -f k8s-yamls/p-mtls/service-defaults-products-api.yaml -n consul --context=dc1
 servicedefaults.consul.hashicorp.com/products-api configured
 ```
 
@@ -278,7 +278,7 @@ spec:
 Then, apply the changes.
 
 ```
-$ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
+$ kubectl apply -f k8s-yamls/p-mtls/mesh-config-entry.yaml -n consul --context=dc1
 mesh.consul.hashicorp.com/mesh configured
 ```
 

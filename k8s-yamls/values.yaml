@@ -20,17 +20,17 @@ global:
   metrics:
     enabled: true
     defaultEnabled: true
-  # cloud:
-  #   enabled: true
-  #   resourceId:
-  #     secretName: "consul-hcp-resource-id"
-  #     secretKey: "resource-id"
-  #   clientId:
-  #     secretName: "consul-hcp-client-id"
-  #     secretKey: "client-id"
-  #   clientSecret:
-  #     secretName: "consul-hcp-client-secret"
-  #     secretKey: "client-secret"
+  cloud:
+    enabled: true
+    resourceId:
+      secretName: "consul-hcp-resource-id"
+      secretKey: "resource-id"
+    clientId:
+      secretName: "consul-hcp-client-id"
+      secretKey: "client-id"
+    clientSecret:
+      secretName: "consul-hcp-client-secret"
+      secretKey: "client-secret"
 dns:
   enabled: true
   enableRedirection: true
