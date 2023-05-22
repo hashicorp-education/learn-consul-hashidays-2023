@@ -1,0 +1,12 @@
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceResolver
+metadata:
+  name: products-api
+spec:
+  connectTimeout: 1s
+  failover:
+    '*':
+      targets:
+        - peer: 'dc3'
+          service: 'products-api'
+          namespace: 'default'
