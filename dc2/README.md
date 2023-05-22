@@ -28,7 +28,7 @@ This directory contains the Terraform configuration for the third datacenter (`d
 1. Deploy HashiCups.
 
     ```
-    kubectl apply --filename ../two-services --context=dc2
+    kubectl apply --filename ../hashicups-full --context=dc2
     ```
 
 1. Verify pods are up and running.
