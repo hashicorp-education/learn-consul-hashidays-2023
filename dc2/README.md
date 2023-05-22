@@ -22,7 +22,7 @@ This directory contains the Terraform configuration for the third datacenter (`d
     secret=$(cat ../k8s-yamls/consul.hclic)
     kubectl create namespace consul --context=dc2
     kubectl create secret generic consul-ent-license --from-literal="key=${secret}" -n consul --context=dc2
-    consul-k8s install -config-file values.yaml --context=dc2
+    ~/consul-k8s install -config-file values.yaml --context=dc2
     ```
 
 1. Deploy HashiCups.
@@ -34,13 +34,19 @@ This directory contains the Terraform configuration for the third datacenter (`d
 1. Verify pods are up and running.
 
     ```
-    kubectl get pods --all-namespaces --context=dc2
+    kubectl get pods --context=dc2
     ```
 
 1. Deploy API Gateway.
 
     ```
-    kubectl apply --filename api-gw/consul-api-gateway.yaml --context=dc2 && \
-        kubectl wait --for=condition=ready gateway/api-gateway --timeout=90s --context=dc2 && \
-        kubectl apply --filename api-gw/routes.yaml --context=dc2
+    kubectl apply --filename api-gw/consul-api-gateway.yaml -n consul --context=dc2 && \
+        kubectl wait --for=condition=ready gateway/api-gateway --timeout=90s -n consul --context=dc2 && \
+        kubectl apply --filename api-gw/routes.yaml -n consul --context=dc2 
+    ```
+
+1. Verify API gateway service was created successfully.
+
+    ```
+    kubectl get services api-gateway -n consul
     ```
