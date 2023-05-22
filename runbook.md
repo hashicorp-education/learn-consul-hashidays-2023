@@ -372,7 +372,7 @@ kubectl \
 Apply intentions.
 
 ```
-kubectl --context=dc3 apply -f k8s-yamls/intention-dc1-public-api-to-dc2-products-api.yaml
+kubectl --context=dc2 apply -f k8s-yamls/intention-dc1-public-api-to-dc2-products-api.yaml
 ```
 
 Update virtual DNS for products API and apply configuration.
