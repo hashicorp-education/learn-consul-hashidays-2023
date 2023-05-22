@@ -306,7 +306,7 @@ $ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
 Configure cluster peering (`dc1` to `dc2`) -- peering through mesh gateways.
 
 ```
-kubectl --context=dc2 apply -f k8s-yamls/peer-through-meshgateways.yaml; done
+kubectl --context=dc2 apply -f k8s-yamls/peer-through-meshgateways.yaml
 ```
 
 Configure local mode for traffic routed over the mesh gateways for both `dc1` and `dc2`.
@@ -339,7 +339,7 @@ Import the peering token generated in `dc1` into `dc2`.
 kubectl --context=dc1 get secret peering-token-dc2 -o yaml | kubectl --context=dc2 apply -f -
 ```
 
-Configure a `PeeringDialer` role for `dc2`. This will create a peering connection from the third datacenter towards the second one.
+Configure a `PeeringDialer` role for `dc2`. This will create a peering connection from the second datacenter towards the first one.
 
 ```
 kubectl --context=dc2 apply -f k8s-yamls/dialer-dc2.yaml

@@ -1,7 +1,7 @@
 global:
   image: 'im2nguyenhashi/consul-enterprise:hashidays'
   imageK8S: 'im2nguyenhashi/consul-k8s-control-plane-dev:hashidays'
-  datacenter: dc1
+  datacenter: dc2
   # include enterprise license
   enterpriseLicense:
     secretName: 'consul-ent-license'
