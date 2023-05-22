@@ -10,12 +10,6 @@ This directory contains the Terraform configuration for the third datacenter (`d
     aws eks update-kubeconfig --region $(terraform output -raw region) --name $(terraform output -raw cluster_name) --alias=dc2
     ```
 
-1. Install API Gateway CRDs.
-
-    ```
-    kubectl apply --kustomize="github.com/hashicorp/consul-api-gateway/config/crd?ref=v0.5.4" --context=dc2
-    ```
-
 1. Deploy Consul.
 
     ```
@@ -34,13 +28,5 @@ This directory contains the Terraform configuration for the third datacenter (`d
 1. Verify pods are up and running.
 
     ```
-    kubectl get pods --all-namespaces --context=dc2
-    ```
-
-1. Deploy API Gateway.
-
-    ```
-    kubectl apply --filename api-gw/consul-api-gateway.yaml --context=dc2 && \
-        kubectl wait --for=condition=ready gateway/api-gateway --timeout=90s --context=dc2 && \
-        kubectl apply --filename api-gw/routes.yaml --context=dc2
+    kubectl get pods --context=dc2
     ```
