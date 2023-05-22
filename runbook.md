@@ -303,16 +303,104 @@ spec:
 $ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
 ```
 
-For `dc2` and `dc3`, we can just apply it.
+Configure cluster peering (`dc1` to `dc2`).
 
 ```
-$ for dc in {dc2,dc3}; do kubectl --context=$dc apply -f k8s-yamls/peer-through-meshgateways.yaml; done
+for dc in {dc1,dc2}; do kubectl --context=$dc apply -f k8s-yamls/peer-through-meshgateways.yaml; done
 ```
 
-Configure `local` mode for traffic routed over the mesh gateways for both `dc1`, `dc2`, `dc3`.
+Configure local mode for traffic routed over the mesh gateways for both `dc1` and `dc2`.
 
 ```
-$ for dc in {dc1,dc2,dc3}; do kubectl --context=$dc apply -f k8s-yamls/originate-via-meshgateways.yaml; done
+for dc in {dc1,dc2}; do kubectl --context=$dc apply -f k8s-yamls/originate-via-meshgateways.yaml; done
 ```
 
-Do everything else through the HCP UI.
+Configure a PeeringAcceptor role for `dc1`.
+
+```
+kubectl --context=dc1 apply -f k8s-yamls/acceptor-on-dc1-for-dc2.yaml
+```
+
+Confirm you successfully created the peering acceptor custom resource definition (CRD).
+
+```
+kubectl --context=dc1 get peeringacceptors
+```
+
+Confirm that the PeeringAcceptor CRD generated a peering token secret.
+
+```
+kubectl --context=dc1 get secrets peering-token-dc2
+```
+
+Import the peering token generated in `dc1` into `dc2`.
+
+```
+kubectl --context=dc1 get secret peering-token-dc2 -o yaml | kubectl --context=dc2 apply -f -
+```
+
+Configure a `PeeringDialer` role for `dc2`. This will create a peering connection from the third datacenter towards the second one.
+
+```
+kubectl --context=dc2 apply -f k8s-yamls/dialer-dc2.yaml
+```
+
+Verify that the two Consul clusters are peered.
+
+```
+kubectl exec --namespace=consul -it --context=dc1 consul-server-0 \
+-- curl --cacert /consul/tls/ca/tls.crt --header "X-Consul-Token: $(kubectl --context=dc1 --namespace=consul get secrets consul-bootstrap-acl-token -o go-template='{{.data.token|base64decode}}')" "https://127.0.0.1:8501/v1/peering/dc2" \
+| jq
+```
+
+In `dc2`, apply the `ExportedServices` custom resource file that exports the `products-api` service to `dc1`.
+
+```
+kubectl --context=dc2 apply -f k8s-yamls/exportedsvc-products-api.yaml
+```
+
+Confirm that the Consul cluster in `dc1` can access the `products-api` in `dc2`.
+
+```
+kubectl \
+--context=dc1 --namespace=consul exec -it consul-server-0 \
+-- curl --cacert /consul/tls/ca/tls.crt \
+--header "X-Consul-Token: $(kubectl --context=dc1 --namespace=consul get secrets consul-bootstrap-acl-token -o go-template='{{.data.token|base64decode}}')" "https://127.0.0.1:8501/v1/health/connect/products-api?peer=dc2" \
+| jq '.[].Service.ID,.[].Service.PeerName'
+```
+
+Apply intentions.
+
+```
+kubectl --context=dc3 apply -f k8s-yamls/intention-dc1-public-api-to-dc2-products-api.yaml
+```
+
+Update virtual DNS for products API and apply configuration.
+
+```
+kubectl --context=dc2 apply -f ../hashicups-full/public-api.yaml
+```
+
+Apply fail-over `dc1` on `dc2`.
+
+```
+kubectl apply -f k8s-yamls/failover.yaml --context=dc1
+```
+
+Scale down `products-api` in `dc2` to test failover.
+
+```
+kubectl scale --context=dc1 deploy/products-api --replicas=0
+```
+
+Port forward the nginx service locally to port 8080 to test the products-api successfully failover.
+
+```
+kubectl --context=dc1 port-forward deploy/nginx 8080:80
+```
+
+Scale up `products-api` in `dc2`.
+
+```
+kubectl scale --context=dc1 deploy/products-api --replicas=1
+```

@@ -44,7 +44,6 @@ This directory contains the Terraform configuration for the third datacenter (`d
     for dc in {dc2,dc3}; do kubectl --context=$dc apply -f k8s-yamls/peer-through-meshgateways.yaml; done
     ```
 
-
 1. Configure local mode for traffic routed over the mesh gateways for both `dc2` and `dc3`.
 
     ```
@@ -126,17 +125,17 @@ This directory contains the Terraform configuration for the third datacenter (`d
 1. Scale down `products-api` in `dc2` to test failover.
 
     ```
-    kubectl scale --context dc2 deploy/products-api --replicas=0
+    kubectl scale --context=dc2 deploy/products-api --replicas=0
     ```
 
 1. Port forward the nginx service locally to port 8080 to test the products-api successfully failover.
 
     ```
-    kubectl --context=dc1 port-forward deploy/nginx 8080:80
+    kubectl --context=dc2 port-forward deploy/nginx 8080:80
     ```
 
 1. Scale up `products-api` in `dc2`.
 
     ```
-    kubectl scale --context dc2 deploy/products-api --replicas=1
+    kubectl scale --context=dc2 deploy/products-api --replicas=1
     ```
