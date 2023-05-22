@@ -123,8 +123,20 @@ This directory contains the Terraform configuration for the third datacenter (`d
     kubectl apply -f ../dc3/k8s-yamls/failover.yaml --context=dc2
     ```
 
-1. Scale down `products-api` in `dc2`.
+1. Scale down `products-api` in `dc2` to test failover.
 
     ```
     kubectl scale --context dc2 deploy/products-api --replicas=0
+    ```
+
+1. Port forward the nginx service locally to port 8080 to test the products-api successfully failover.
+
+    ```
+    kubectl --context=dc1 port-forward deploy/nginx 8080:80
+    ```
+
+1. Scale up `products-api` in `dc2`.
+
+    ```
+    kubectl scale --context dc2 deploy/products-api --replicas=1
     ```
