@@ -52,7 +52,8 @@ spec:
           # uses a modified hashicups database that only returns
           # hcp, vault and consul coffee. this will make the cluster peering
           # failover part more visible and dramatic
-          image: im2nguyenhashi/product-api-db:hashidays-demo
+          image: hashicorpdemoapp/product-api-db:v0.0.20
+          # image: im2nguyenhashi/product-api-db:hashidays-demo
           imagePullPolicy: Always
           ports:
             - containerPort: 5432
