@@ -378,7 +378,7 @@ kubectl --context=dc2 apply -f k8s-yamls/intention-dc1-public-api-to-dc2-product
 Update virtual DNS for products API and apply configuration.
 
 ```
-kubectl --context=dc2 apply -f ../hashicups-full/public-api.yaml
+kubectl --context=dc1 apply -f ../hashicups-full/public-api.yaml
 ```
 
 Apply fail-over `dc1` on `dc2`.
