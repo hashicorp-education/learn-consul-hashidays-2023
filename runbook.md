@@ -295,18 +295,18 @@ metadata:
   name: mesh
 spec:
   allowEnablingPermissiveMutualTLS: false
-#  peering:
-#    peerThroughMeshGateways: true
+   peering:
+     peerThroughMeshGateways: true
 ```
 
 ```
 $ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
 ```
 
-Configure cluster peering (`dc1` to `dc2`).
+Configure cluster peering (`dc1` to `dc2`) -- peering through mesh gateways.
 
 ```
-for dc in {dc1,dc2}; do kubectl --context=$dc apply -f k8s-yamls/peer-through-meshgateways.yaml; done
+kubectl --context=dc2 apply -f k8s-yamls/peer-through-meshgateways.yaml; done
 ```
 
 Configure local mode for traffic routed over the mesh gateways for both `dc1` and `dc2`.
@@ -350,7 +350,7 @@ Verify that the two Consul clusters are peered.
 ```
 kubectl exec --namespace=consul -it --context=dc1 consul-server-0 \
 -- curl --cacert /consul/tls/ca/tls.crt --header "X-Consul-Token: $(kubectl --context=dc1 --namespace=consul get secrets consul-bootstrap-acl-token -o go-template='{{.data.token|base64decode}}')" "https://127.0.0.1:8501/v1/peering/dc2" \
-| jq
+ | jq
 ```
 
 In `dc2`, apply the `ExportedServices` custom resource file that exports the `products-api` service to `dc1`.

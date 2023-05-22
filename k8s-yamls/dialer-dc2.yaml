@@ -8,4 +8,3 @@ spec:
       name: "peering-token-dc2"
       key: "data"
       backend: "kubernetes"
-
