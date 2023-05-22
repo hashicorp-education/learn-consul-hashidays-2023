@@ -387,19 +387,31 @@ Apply fail-over `dc1` on `dc2`.
 kubectl apply -f k8s-yamls/failover.yaml --context=dc1
 ```
 
-Scale down `products-api` in `dc2` to test failover.
-
-```
-kubectl scale --context=dc1 deploy/products-api --replicas=0
-```
-
 Port forward the nginx service locally to port 8080 to test the products-api successfully failover.
 
 ```
 kubectl --context=dc1 port-forward deploy/nginx 8080:80
 ```
 
+Scale down `products-api` in `dc1` to test failover.
+
+```
+kubectl scale --context=dc1 deploy/products-api --replicas=0
+```
+
+Scale down `products-api` in `dc2` to test failover.
+
+```
+kubectl scale --context=dc2 deploy/products-api --replicas=0
+```
+
 Scale up `products-api` in `dc2`.
+
+```
+kubectl scale --context=dc2 deploy/products-api --replicas=1
+```
+
+Scale up `products-api` in `dc1`.
 
 ```
 kubectl scale --context=dc1 deploy/products-api --replicas=1
