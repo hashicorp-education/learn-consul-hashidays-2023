@@ -84,7 +84,7 @@ products-api-sidecar-proxy
 ## Enable permissive mTLS (mesh)
 
 ```
-$ kubectl apply -f k8s-yamls/p-mtls/mesh-config-entry.yaml -n consul --context=dc1
+$ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
 mesh.consul.hashicorp.com/mesh created
 ```
 
@@ -155,7 +155,7 @@ Open [localhost:8080]() in your browser to view the HashiCups UI. Notice that it
 Enable `products-api` to allow non-mTLS traffic.
 
 ```
-$ kubectl apply -f k8s-yamls/p-mtls/service-defaults-products-api.yaml -n consul --context=dc1
+$ kubectl apply -f k8s-yamls/service-defaults-products-api.yaml -n consul --context=dc1
 ```
 
 ## Migrate services to Consul
@@ -258,7 +258,7 @@ spec:
 Then, apply the changes.
 
 ```
-$ kubectl apply -f k8s-yamls/p-mtls/service-defaults-products-api.yaml -n consul --context=dc1
+$ kubectl apply -f k8s-yamls/service-defaults-products-api.yaml -n consul --context=dc1
 servicedefaults.consul.hashicorp.com/products-api configured
 ```
 
@@ -278,7 +278,7 @@ spec:
 Then, apply the changes.
 
 ```
-$ kubectl apply -f k8s-yamls/p-mtls/mesh-config-entry.yaml -n consul --context=dc1
+$ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
 mesh.consul.hashicorp.com/mesh configured
 ```
 
@@ -300,7 +300,7 @@ spec:
 ```
 
 ```
-$ kubectl apply -f k8s-yamls/p-mtls/mesh-config-entry.yaml -n consul --context=dc1
+$ kubectl apply -f k8s-yamls/mesh-config-entry.yaml -n consul --context=dc1
 ```
 
 For `dc2` and `dc3`, we can just apply it.
