@@ -2,53 +2,56 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: product-api-db
+  name: postgres
   labels:
-    app: product-api-db
+    app: postgres
 spec:
-  type: ClusterIP
   ports:
     - port: 5432
       targetPort: 5432
+      protocol: TCP
   selector:
-    app: product-api-db
----
-apiVersion: consul.hashicorp.com/v1alpha1
-kind: ServiceDefaults
-metadata:
-  name: product-api-db
-spec:
-  protocol: "tcp"
+    app: postgres
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: product-api-db
+  name: postgres
 automountServiceAccountToken: true
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceDefaults
+metadata:
+  name: postgres
+spec:
+  protocol: "tcp"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: product-api-db
+  name: postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      service: product-api-db
-      app: product-api-db
+      service: postgres
+      app: postgres
   template:
     metadata:
       labels:
-        service: product-api-db
-        app: product-api-db
+        service: postgres
+        app: postgres
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9102"
         consul.hashicorp.com/connect-inject: "true"
     spec:
-      serviceAccountName: product-api-db
+      serviceAccountName: postgres
       containers:
-        - name: product-api-db
+        - name: postgres
+          # uses a modified hashicups database that only returns
+          # hcp, vault and consul coffee. this will make the cluster peering
+          # failover part more visible and dramatic
           image: hashicorpdemoapp/product-api-db:v0.0.20
           imagePullPolicy: Always
           ports:
