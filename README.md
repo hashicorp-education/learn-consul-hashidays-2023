@@ -385,10 +385,10 @@ Apply intentions.
 kubectl apply -f k8s-yamls/intention-dc1-public-api-to-dc2-products-api.yaml --context=dc2
 ```
 
-Update virtual DNS for products API and apply configuration.
+Update the environment variable in `hashicups-v1.0.2.yaml` with the virtual DNS for `products-api` (it should look the same as `hashicups-v2.0.0/public-api.yaml`) and then apply configuration. This will ensure `public-api` in `dc1` will continue routing to `product-api` in the event of a failure.
 
 ```sh
-kubectl apply -f hashicups-v2.0.0/public-api.yaml --context=dc2
+kubectl apply -f hashicups-v1.0.2/public-api.yaml --context=dc1
 ```
 
 Apply fail-over `dc1` on `dc2`.
