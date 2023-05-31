@@ -9,6 +9,7 @@ This is a companion repo for the [HashiDays 2023 Consul Learn Lab]().
 3. be mindful this requires an enterprise license to use (which features exactly?)
 4. be mindful the HCP management plane section requires an account/signup
 5. be mindful we have API Gateway deployed in dc2 but we don't use it.. should we remove it?
+6. be mindful that the dc1 terraform deploys two k8s node groups.. we can probably remove one of these.
 
 ## Prerequisites
 
