@@ -2,31 +2,53 @@
 
 This is a companion repo for the [HashiDays 2023 Consul Learn Lab]().
 
-## Prerequisites
-
-1. this
-2. this
-3. this
-
-## Create infrastructure 
-
-```sh
-terraform init
-terraform apply
-```
-
-```sh
-aws eks update-kubeconfig \
-  --region $(terraform output -raw region) \
-  --name $(terraform output -raw cluster_name)  --alias=dc1
-```
-
 ## Mindfulness
 
 1. be mindful of the im2nguyen images
 2. be mindful that these environments build in EKS only (add AKS?)
 3. be mindful this requires an enterprise license to use (which features exactly?)
 4. be mindful the HCP management plane section requires an account/signup
+5. be mindful we have API Gateway deployed in dc2 but we don't use it.. should we remove it?
+
+## Prerequisites
+
+1. this
+2. this
+3. this
+
+## Create Kubernetes infrastructure 
+
+### Consul dc1
+
+Run Terraform.
+
+```sh
+terraform -chdir=dc1/ init
+terraform -chdir=dc1/ apply
+```
+
+Configure your `kubectl` context for `dc1`.
+
+```sh
+aws eks update-kubeconfig \
+  --region $(terraform -chdir=dc1/ output -raw region) \
+  --name $(terraform -chdir=dc1/ output -raw cluster_name)  --alias=dc1
+```
+
+### Consul dc2
+
+Run Terraform.
+
+```sh
+terraform -chdir=dc2/ init
+terraform -chdir=dc2/ apply
+```
+
+Configure your `kubectl` context for `dc2`.
+
+```sh
+aws eks update-kubeconfig --region $(terraform -chdir=dc2/ output -raw region) --name $(terraform -chdir=dc2/ output -raw cluster_name) --alias=dc2
+```
 
 ## Unzip consul-k8s binary
 
@@ -36,7 +58,9 @@ Unzip the custom consul-k8s binary.
 unzip consul-k8s.zip
 ```
 
-## Deploy Consul
+## Deploy Consul and HashiCups in both datacenters
+
+### dc1
 
 Deploy Consul with the enterprise license and using the custom consul-k8s binary.
 
@@ -45,19 +69,6 @@ secret=$(cat k8s-yamls/consul.hclic)
 kubectl create namespace consul --context=dc1
 kubectl create secret generic consul-ent-license --from-literal="key=${secret}" -n consul --context=dc1
 ./consul-k8s install -config-file k8s-yamls/values-dc1.yaml --context=dc1
-```
-
-Confirm Consul is running successfully.
-
-```sh
-kubectl get pods -n consul --context=dc1
-```
-```log
-NAME                                           READY   STATUS    RESTARTS   AGE
-consul-connect-injector-59b5b4fccd-mqmhv       1/1     Running   0          90s
-consul-mesh-gateway-7b86b77d99-rhfgd           1/1     Running   0          90s
-consul-server-0                                1/1     Running   0          90s
-consul-webhook-cert-manager-57c5bb695c-qxc5t   1/1     Running   0          90s
 ```
 
 Confirm that helm chart version is `1.2.0-dev`.
@@ -70,9 +81,7 @@ NAME    NAMESPACE       REVISION        UPDATED                                 
 consul  consul          1               2023-05-14 06:12:25.898867 -0700 PDT    deployed   consul-1.2.0-dev 1.15.1     
 ```
 
-## Deploy mesh-enabled services
-
-Deploy HashiCups v1.0.2 in dc1.
+Deploy the two mesh-enabled HashiCups v1.0.2 services in `dc1`.
 
 ```sh
 for service in {products-api,postgres,intentions-api-db}; do kubectl apply -f hashicups-v1.0.2/$service.yaml --context=dc1; done
@@ -91,38 +100,7 @@ serviceintentions.consul.hashicorp.com/postgres created
 serviceintentions.consul.hashicorp.com/deny-all created
 ```
 
-Verify services in k8s.
-
-```sh
-kubectl get service --context=dc1
-```
-```log
-NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-kubernetes     ClusterIP   172.20.0.1      <none>        443/TCP    12m
-postgres       ClusterIP   172.20.196.70   <none>        5432/TCP   4s
-products-api   ClusterIP   172.20.182.94   <none>        9090/TCP   7s
-```
-
-Verify services in Consul.
-
-```sh
-kubectl exec --namespace consul --context=dc1 -it consul-server-0 -- consul catalog services
-```
-```log
-Defaulted container "consul" out of: consul, locality-init (init)
-consul
-mesh-gateway
-postgres
-postgres-sidecar-proxy
-products-api
-products-api-sidecar-proxy
-```
-
-## Deploy non-mesh services
-
-First, you need to deploy services to your Kubernetes clusters. Permissive mTLS requires TProxy (so it only works with Consul on Kubernetes for now). The following HashiCups service deployments have `consul.hashicorp.com/connect-inject` explicitly set to `false` so Consul does not register them.
-
-(might need to do a deeper dive on tproxy and how routing works)
+Deploy the four non-mesh HashiCups v1.0.2 services in `dc1`.
 
 ```sh
 $ for service in {frontend,nginx,public-api,payments}; do kubectl apply -f hashicups-v1.0.2/$service.yaml --context=dc1; done
@@ -177,6 +155,40 @@ postgres-sidecar-proxy
 products-api
 products-api-sidecar-proxy
 ```
+
+### dc2
+
+Install API Gateway CRDs.
+
+```sh
+kubectl apply --kustomize="github.com/hashicorp/consul-api-gateway/config/crd?ref=v0.5.4" --context=dc2
+```
+
+Deploy Consul.
+
+```sh
+secret=$(cat k8s-yamls/consul.hclic)
+kubectl create namespace consul --context=dc2
+kubectl create secret generic consul-ent-license --from-literal="key=${secret}" -n consul --context=dc2
+./consul-k8s install -config-file values-dc2.yaml --context=dc2
+```
+
+### Deploy all mesh-enabled HashiCups services in dc2.
+
+Deploy HashiCups v2.0.0 in `dc2`. These HashiCups services are all mesh-enabled (they all include Consul sidecars).
+
+```sh
+kubectl apply --filename ../hashicups-v2.0.0 --context=dc2
+```
+
+Deploy API Gateway in `dc2`.
+
+```sh
+kubectl apply --filename api-gw/consul-api-gateway.yaml --context=dc2 && \
+kubectl wait --for=condition=ready gateway/api-gateway --timeout=90s --context=dc2 && \
+kubectl apply --filename api-gw/routes.yaml --context=dc2
+```
+
 
 ## Migrate non-mesh services to the mesh with Permissive mTLS
 
