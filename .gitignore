@@ -2,6 +2,7 @@ k8s-yamls/consul.hclic
 
 # Local .terraform directories
 **/.terraform/*
+.terraform
 
 # .tfstate files
 *.tfstate
@@ -33,3 +34,6 @@ override.tf.json
 # repository-related files
 kubeconfig_*
 *_config
+
+consul-k8s
+consul-k8s.bin

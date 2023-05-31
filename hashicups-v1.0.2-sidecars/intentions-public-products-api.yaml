@@ -1,0 +1,11 @@
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceIntentions
+metadata:
+  name: products-api
+spec:
+  sources:
+    - name: public-api
+      action: allow
+  destination:
+    name: products-api

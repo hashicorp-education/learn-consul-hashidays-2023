@@ -99,8 +99,8 @@ spec:
       labels:
         app: nginx
       annotations:
-        consul.hashicorp.com/connect-inject: "true"
-        # consul.hashicorp.com/connect-inject: "false"
+        # consul.hashicorp.com/connect-inject: "true"
+        consul.hashicorp.com/connect-inject: "false"
     spec:
       serviceAccountName: nginx
       volumes:
