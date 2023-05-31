@@ -279,6 +279,8 @@ public-api-sidecar-proxy
 
 ```sh
 kubectl apply -f hashicups-v1.0.2-sidecars/intentions-public-products-api.yaml -n consul --context=dc1
+```
+```log
 serviceintentions.consul.hashicorp.com/public-api created
 ```
 
