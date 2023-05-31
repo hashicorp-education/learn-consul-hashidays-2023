@@ -1,0 +1,46 @@
+global:
+  image: 'im2nguyenhashi/consul-enterprise:hashidays'
+  imageK8S: 'im2nguyenhashi/consul-k8s-control-plane-dev:hashidays'
+  datacenter: dc1
+  # include enterprise license
+  enterpriseLicense:
+    secretName: 'consul-ent-license'
+    secretKey: 'key'
+  peering:
+    enabled: true
+  tls:
+    enabled: true # mandatory for cluster peering
+    enableAutoEncrypt: true
+    verify: true
+  acls:
+    manageSystemACLs: true
+  metrics:
+    enabled: true
+    defaultEnabled: true
+dns:
+  enabled: true
+  enableRedirection: true
+server:
+  enabled: true
+  replicas: 1
+  extraConfig: |
+    {
+      "log_level": "TRACE"
+    }
+connectInject:
+  enabled: true
+meshGateway:
+  enabled: true # mandatory for k8s cluster peering
+  replicas: 1
+ui:
+  enabled: true
+  service:
+    enabled: true
+    type: LoadBalancer
+apiGateway:
+  enabled: true
+  image: hashicorp/consul-api-gateway:0.5.4
+  managedGatewayClass:
+    # Defines the type of service created for gateways (e.g. LoadBalancer, ClusterIP, NodePort)
+    # NodePort is primarily used for local deployments.
+    serviceType: LoadBalancer

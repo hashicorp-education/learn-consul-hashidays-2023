@@ -43,8 +43,8 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9102"
-        # consul.hashicorp.com/connect-inject: "true"
-        consul.hashicorp.com/connect-inject: "false"
+        consul.hashicorp.com/connect-inject: "true"
+        # consul.hashicorp.com/connect-inject: "false"
     spec:
       serviceAccountName: public-api
       containers:
@@ -54,10 +54,10 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: PRODUCT_API_URI
+              value: "http://products-api.virtual.consul"
             - name: BIND_ADDRESS
               value: ":8080"
-            - name: PRODUCT_API_URI
-              value: "http://products-api:9090"
             - name: PAYMENT_API_URI
               value: "http://payments:1800"
         - name: jaeger-agent
