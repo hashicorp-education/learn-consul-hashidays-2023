@@ -1,7 +1,7 @@
 global:
   image: 'im2nguyenhashi/consul-enterprise:hashidays'
   imageK8S: 'im2nguyenhashi/consul-k8s-control-plane-dev:hashidays'
-  datacenter: dc1
+  datacenter: dc2
   # include enterprise license
   enterpriseLicense:
     secretName: 'consul-ent-license'
@@ -17,17 +17,24 @@ global:
   metrics:
     enabled: true
     defaultEnabled: true
-  cloud:
-    enabled: true
-    resourceId:
-      secretName: "consul-hcp-resource-id"
-      secretKey: "resource-id"
-    clientId:
-      secretName: "consul-hcp-client-id"
-      secretKey: "client-id"
-    clientSecret:
-      secretName: "consul-hcp-client-secret"
-      secretKey: "client-secret"
+  apiGateway:
+      enabled: true
+      image: hashicorp/consul-api-gateway:0.5.4
+      managedGatewayClass:
+        # Defines the type of service created for gateways (e.g. LoadBalancer, ClusterIP, NodePort)
+        # NodePort is primarily used for local deployments.
+        serviceType: LoadBalancer
+  # cloud:
+  #   enabled: true
+  #   resourceId:
+  #     secretName: "consul-hcp-resource-id"
+  #     secretKey: "resource-id"
+  #   clientId:
+  #     secretName: "consul-hcp-client-id"
+  #     secretKey: "client-id"
+  #   clientSecret:
+  #     secretName: "consul-hcp-client-secret"
+  #     secretKey: "client-secret"
 dns:
   enabled: true
   enableRedirection: true

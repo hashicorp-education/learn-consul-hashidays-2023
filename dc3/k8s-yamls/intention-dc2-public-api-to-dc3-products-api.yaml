@@ -8,6 +8,6 @@ spec:
       action: allow
     - name: public-api
       action: allow
-      peer: dc1
+      peer: dc2
   destination:
     name: products-api
