@@ -16,9 +16,6 @@ aws eks update-kubeconfig \
 ### Deploy Consul
 
 ```
-secret=$(cat k8s-yamls/consul.hclic)
-kubectl create namespace consul --context=dc1
-kubectl create secret generic consul-ent-license --from-literal="key=${secret}" -n consul --context=dc1
 ~/consul-k8s install -config-file k8s-yamls/values.yaml --context=dc1
 ```
 
@@ -44,7 +41,7 @@ consul  consul          1               2023-05-14 06:12:25.898867 -0700 PDT    
 ### Deploy HashiCups services
 
 ```
-$ for service in {products-api,postgres,intentions-api-db}; do kubectl apply -f hashicups-v1.0.2/$service.yaml --context=dc1; done
+$ for service in {products-api,postgres,intentions-api-db}; do kubectl apply -f hashicups-dc1/$service.yaml --context=dc1; done
 service/products-api created
 serviceaccount/products-api created
 servicedefaults.consul.hashicorp.com/products-api created
@@ -95,7 +92,7 @@ First, you need to deploy services to your Kubernetes clusters. Permissive mTLS 
 (might need to do a deeper dive on tproxy and how routing works)
 
 ```
-$ for service in {frontend,nginx,public-api,payments}; do kubectl apply -f hashicups-v1.0.2/$service.yaml --context=dc1; done
+$ for service in {frontend,nginx,public-api,payments}; do kubectl apply -f hashicups-dc1/$service.yaml --context=dc1; done
 service/frontend created
 serviceaccount/frontend created
 servicedefaults.consul.hashicorp.com/frontend created
@@ -188,7 +185,7 @@ spec:
 Once you have done this to all four files, apply the changes. In addition, you will apply a file that creates intentions between these services. 
 
 ```
-$ for service in {frontend,nginx,public-api,payments,intentions-new-services}; do kubectl apply -f hashicups-v1.0.2/$service.yaml --context=dc1; done
+$ for service in {frontend,nginx,public-api,payments,intentions-new-services}; do kubectl apply -f hashicups-dc1/$service.yaml --context=dc1; done
 service/frontend unchanged
 serviceaccount/frontend unchanged
 servicedefaults.consul.hashicorp.com/frontend unchanged
@@ -235,7 +232,7 @@ public-api-sidecar-proxy
 ### Set up intentions
 
 ```
-$ kubectl apply -f hashicups-v1.0.2/intentions-public-products-api.yaml -n consul --context=dc1
+$ kubectl apply -f hashicups-dc1/intentions-public-products-api.yaml -n consul --context=dc1
 serviceintentions.consul.hashicorp.com/public-api created
 ```
 
