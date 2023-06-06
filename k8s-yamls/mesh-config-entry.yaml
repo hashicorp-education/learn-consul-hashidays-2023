@@ -3,7 +3,6 @@ kind: Mesh
 metadata:
   name: mesh
 spec:
-  # allowEnablingPermissiveMutualTLS: true
-  allowEnablingPermissiveMutualTLS: false
+  allowEnablingPermissiveMutualTLS: true
   # peering:
   #   peerThroughMeshGateways: true
