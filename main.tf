@@ -1,8 +1,8 @@
-# module "dc1" {
-#   source = "./dc1"
+module "dc1" {
+  source = "./dc1"
 
-#   region = var.region
-# }
+  region = var.region
+}
 
 module "dc2" {
   source = "./dc2"
